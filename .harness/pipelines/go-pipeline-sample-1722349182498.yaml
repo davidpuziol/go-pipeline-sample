@@ -38,7 +38,7 @@ pipeline:
                   identifier: dockerbuild
                   name: docker_build
                   spec:
-                    connectorRef: <+input>
+                    connectorRef: <+input>.allowedValues(account.DockerHub_David_Connector)
                     repo: davidpuziol/harnesstest
                     tags:
                       - latest
