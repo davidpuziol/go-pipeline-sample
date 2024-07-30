@@ -23,7 +23,13 @@ pipeline:
                   identifier: gobuild
                   name: go_build
                   spec:
-                    command: go build
+                    shell: Sh
+                    command: |-
+                      wget https://golang.org/dl/go1.20.4.linux-amd64.tar.gz
+                      tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
+                      export PATH=$PATH:/usr/local/go/bin
+                      go version
+                      go build
                   timeout: ""
                   type: Run
               - step:
