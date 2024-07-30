@@ -9,49 +9,65 @@ pipeline:
         build: <+input>
         connectorRef: harnessgitconnector
         repoName: go-pipeline-sample
+  tags: {}
   stages:
     - stage:
-        identifier: build
-        name: build
+        name: "build test and run "
+        identifier: build_test_and_run
+        description: ""
+        type: CI
         spec:
-          caching:
-            enabled: true
           cloneCodebase: true
-          execution:
-            steps:
-              - step:
-                  identifier: gobuild
-                  name: go_build
-                  spec:
-                    connectorRef: account.harnessImage
-                    image: golang
-                    shell: Sh
-                    command: |-
-                      # wget https://golang.org/dl/go1.20.4.linux-amd64.tar.gz
-                      # tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
-                      # export PATH=$PATH:/usr/local/go/bin
-                      # go version
-                      go build
-                  timeout: ""
-                  type: Run
-              - step:
-                  identifier: dockerbuild
-                  name: docker_build
-                  spec:
-                    connectorRef: account.DockerHub_David_Connector
-                    repo: davidpuziol/harnesstest
-                    tags:
-                      - latest
-                    caching: true
-                  timeout: ""
-                  type: BuildAndPushDockerRegistry
           platform:
             os: Linux
             arch: Amd64
           runtime:
-            type: Docker
+            type: Cloud
             spec: {}
-        type: CI
-        description: ""
-        delegateSelectors:
-          - docker-delegate
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: run unit test
+                  identifier: run_unit_test
+                  spec:
+                    connectorRef: <+input>
+                    image: golang:1.15
+                    shell: Sh
+                    command: |-
+                      set +e
+                      go get gotest.tools/gotestsum
+                      gotestsum --format=standard-verbose --junitfile unit-tests.xml
+                      exit 0
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - "*.xml"
+              - step:
+                  type: Run
+                  name: go build
+                  identifier: go_build
+                  spec:
+                    connectorRef: <+input>
+                    image: golang:1.15
+                    shell: Sh
+                    command: |-
+                      set +e
+                      go get gotest.tools/gotestsum
+                      CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo
+                      exit 0
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build And Push Docker Registry
+                  identifier: Build_And_Push_Docker_Registry
+                  spec:
+                    connectorRef: <+input>
+                    repo: <+input>
+                    tags:
+                      - latest
+        variables:
+          - name: myStageVar
+            type: String
+            description: ""
+            value: stageVarValue
