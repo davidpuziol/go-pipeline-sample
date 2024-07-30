@@ -33,19 +33,6 @@ pipeline:
                   timeout: ""
                   type: Run
               - step:
-                  identifier: gotestcoverage
-                  name: go_test_coverage
-                  spec:
-                    shell: Sh
-                    command: |-
-                      wget https://golang.org/dl/go1.20.4.linux-amd64.tar.gz
-                      tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
-                      export PATH=$PATH:/usr/local/go/bin
-                      go version
-                      go test -coverprofile=coverage.out ./...
-                  timeout: ""
-                  type: Run
-              - step:
                   identifier: gotestreport
                   name: go_test_report
                   spec:
